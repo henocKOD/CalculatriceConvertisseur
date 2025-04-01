@@ -21,22 +21,34 @@ import java.util.List;
 
 public class CalculatriceConvertisseur extends Application {
     private Label display;
+    private Label operationDisplay;
     private String currentInput = "";
     private String operator = "";
     private double firstOperand = 0;
     private boolean isDarkMode = false;
     private List<String> history = new ArrayList<>();
     private ListView<String> historyView;
+    private Stage historyStage;
 
     @Override
     public void start(Stage primaryStage) {
-        // Create display
+        // Create main display
+        VBox displayBox = new VBox(5);
+        displayBox.setStyle("-fx-background-color: black;");
+        
+        operationDisplay = new Label("");
+        operationDisplay.setStyle("-fx-text-fill: #666666; -fx-font-size: 24px;");
+        operationDisplay.setAlignment(Pos.CENTER_RIGHT);
+        operationDisplay.setPrefWidth(300);
+        
         display = new Label("0");
         display.setStyle("-fx-background-color: black; -fx-text-fill: white; -fx-padding: 20px;");
         display.setFont(Font.font("System", FontWeight.LIGHT, 48));
         display.setAlignment(Pos.CENTER_RIGHT);
         display.setPrefWidth(300);
         display.setMinHeight(100);
+        
+        displayBox.getChildren().addAll(operationDisplay, display);
 
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(10));
@@ -89,18 +101,62 @@ public class CalculatriceConvertisseur extends Application {
             zeroButton.setPrefWidth(150);
         }
 
-        // Create history view
-        historyView = new ListView<>();
-        historyView.setPrefHeight(100);
-        historyView.setStyle("-fx-background-color: black; -fx-text-fill: white; -fx-font-size: 14px;");
-        historyView.setItems(FXCollections.observableArrayList(history));
+        // Create History button
+        Button historyButton = new Button("History");
+        historyButton.setStyle("-fx-background-color: #333333; -fx-text-fill: white; -fx-font-size: 16px; " +
+                             "-fx-background-radius: 5px; -fx-padding: 5px 10px;");
+        historyButton.setOnAction(e -> showHistory());
 
-        VBox root = new VBox(0, display, historyView, grid);
+        VBox root = new VBox(0, historyButton, displayBox, grid);
         root.setStyle("-fx-background-color: black;");
         Scene scene = new Scene(root, 320, 600);
         primaryStage.setScene(scene);
         primaryStage.setTitle("iPhone Calculator");
         primaryStage.show();
+    }
+
+    private void showHistory() {
+        if (historyStage == null) {
+            historyStage = new Stage();
+            historyStage.setTitle("Calculation History");
+            
+            VBox historyLayout = new VBox(10);
+            historyLayout.setPadding(new Insets(20));
+            historyLayout.setStyle("-fx-background-color: #1c1c1c;");
+            
+            Label historyLabel = new Label("Calculation History");
+            historyLabel.setStyle("-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;");
+            
+            historyView = new ListView<>();
+            historyView.setPrefHeight(400);
+            historyView.setPrefWidth(300);
+            historyView.setStyle("-fx-background-color: #1c1c1c; -fx-text-fill: white; -fx-font-size: 14px;");
+            historyView.setItems(FXCollections.observableArrayList(history));
+            
+            Button clearHistoryButton = new Button("Clear History");
+            clearHistoryButton.setStyle("-fx-background-color: #FF3B30; -fx-text-fill: white; -fx-font-size: 14px; " +
+                                      "-fx-padding: 8px; -fx-background-radius: 5px;");
+            clearHistoryButton.setOnAction(e -> {
+                history.clear();
+                historyView.setItems(FXCollections.observableArrayList(history));
+            });
+            
+            historyLayout.getChildren().addAll(historyLabel, historyView, clearHistoryButton);
+            
+            Scene scene = new Scene(historyLayout, 340, 500);
+            historyStage.setScene(scene);
+            historyStage.setResizable(false);
+        }
+        
+        historyStage.show();
+    }
+
+    private void updateOperationDisplay() {
+        if (!operator.isEmpty()) {
+            operationDisplay.setText(String.format("%d %s %s", (int)firstOperand, operator, currentInput));
+        } else {
+            operationDisplay.setText(currentInput);
+        }
     }
 
     private String getButtonStyle(String text) {
@@ -131,18 +187,35 @@ public class CalculatriceConvertisseur extends Application {
                 firstOperand = 0;
                 operator = "";
                 display.setText("0");
+                operationDisplay.setText("");
                 break;
             case "⌫":
                 if (!currentInput.isEmpty()) {
                     currentInput = currentInput.substring(0, currentInput.length() - 1);
                     display.setText(currentInput.isEmpty() ? "0" : currentInput);
+                    updateOperationDisplay();
                 }
                 break;
             case "%":
                 if (!currentInput.isEmpty()) {
-                    double value = Double.parseDouble(currentInput);
+                    int value = Integer.parseInt(currentInput);
                     currentInput = String.valueOf(value / 100);
                     display.setText(currentInput);
+                    updateOperationDisplay();
+                }
+                break;
+            case "÷":
+            case "×":
+            case "-":
+            case "+":
+                if (!currentInput.isEmpty()) {
+                    if (!operator.isEmpty()) {
+                        computeResult();
+                    }
+                    firstOperand = Integer.parseInt(currentInput);
+                    operator = text;
+                    currentInput = "";
+                    updateOperationDisplay();
                 }
                 break;
             case "=":
@@ -151,24 +224,17 @@ public class CalculatriceConvertisseur extends Application {
             case "Conv":
                 openConversionWindow();
                 break;
-            case "÷":
-            case "×":
-            case "-":
-            case "+":
-                if (!currentInput.isEmpty()) {
-                    firstOperand = Double.parseDouble(currentInput);
-                    operator = text.equals("÷") ? "/" : 
-                              text.equals("×") ? "*" : text;
-                    currentInput = "";
-                }
+            case ".":
+                // Ignore decimal point for integer-only calculator
                 break;
             default:
-                if (currentInput.equals("0") && !text.equals(".")) {
+                if (currentInput.equals("0")) {
                     currentInput = text;
                 } else {
                     currentInput += text;
                 }
                 display.setText(currentInput);
+                updateOperationDisplay();
         }
     }
 
@@ -312,65 +378,36 @@ public class CalculatriceConvertisseur extends Application {
     }
 
     private double convertCurrency(double amount, String from, String to) {
-        // Base rates (as of 2024)
-        double usdToEur = 0.92;
-        double usdToXof = 655.957;
-        double eurToXof = 656.0;
+        // Updated exchange rates (as of 2024)
+        double[][] rates = {
+            {1.0, 0.9259, 605.0},     // USD rates (1 USD = 0.9259 EUR, 1 USD = 605 XOF)
+            {1.08, 1.0, 655.96},      // EUR rates (1 EUR = 1.08 USD, 1 EUR = 655.96 XOF)
+            {0.001653, 0.001524, 1.0} // XOF rates (1 XOF = 0.001653 USD, 1 XOF = 0.001524 EUR)
+        };
         
-        // Convert to USD first (as base currency)
-        double amountInUSD;
-        switch (from) {
-            case "EUR":
-                amountInUSD = amount / usdToEur;
-                break;
-            case "XOF":
-                amountInUSD = amount / usdToXof;
-                break;
-            default: // USD
-                amountInUSD = amount;
-                break;
-        }
+        int fromIndex = from.equals("USD") ? 0 : from.equals("EUR") ? 1 : 2;
+        int toIndex = to.equals("USD") ? 0 : to.equals("EUR") ? 1 : 2;
         
-        // Convert from USD to target currency
-        switch (to) {
-            case "EUR":
-                return amountInUSD * usdToEur;
-            case "XOF":
-                return amountInUSD * usdToXof;
-            default: // USD
-                return amountInUSD;
-        }
+        return amount * rates[fromIndex][toIndex];
     }
 
     private double convertLength(double length, String from, String to) {
-        // Convert to meters first (as base unit)
-        double lengthInMeters;
-        switch (from) {
-            case "Kilometers":
-                lengthInMeters = length * 1000;
-                break;
-            case "Miles":
-                lengthInMeters = length * 1609.34;
-                break;
-            case "Feet":
-                lengthInMeters = length * 0.3048;
-                break;
-            default: // Meters
-                lengthInMeters = length;
-                break;
-        }
+        // Updated conversion rates
+        double[][] rates = {
+            {1.0, 0.001, 0.000621371, 3.28084},     // Meters rates
+            {1000.0, 1.0, 0.621371, 3280.84},       // Kilometers rates
+            {1609.34, 1.60934, 1.0, 5280.0},        // Miles rates
+            {0.3048, 0.0003048, 0.000189394, 1.0}   // Feet rates
+        };
         
-        // Convert from meters to target unit
-        switch (to) {
-            case "Kilometers":
-                return lengthInMeters / 1000;
-            case "Miles":
-                return lengthInMeters / 1609.34;
-            case "Feet":
-                return lengthInMeters / 0.3048;
-            default: // Meters
-                return lengthInMeters;
-        }
+        int fromIndex = from.equals("Meters") ? 0 : 
+                       from.equals("Kilometers") ? 1 :
+                       from.equals("Miles") ? 2 : 3;
+        int toIndex = to.equals("Meters") ? 0 :
+                     to.equals("Kilometers") ? 1 :
+                     to.equals("Miles") ? 2 : 3;
+        
+        return length * rates[fromIndex][toIndex];
     }
 
     private void addToHistory(String calculation) {
@@ -378,20 +415,37 @@ public class CalculatriceConvertisseur extends Application {
         if (history.size() > 5) {
             history.remove(history.size() - 1);
         }
-        historyView.setItems(FXCollections.observableArrayList(history));
+        if (historyView != null) {
+            historyView.setItems(FXCollections.observableArrayList(history));
+        }
     }
 
     private void computeResult() {
         if (!currentInput.isEmpty() && !operator.isEmpty()) {
-            double secondOperand = Double.parseDouble(currentInput);
-            double result = 0;
+            int secondOperand = Integer.parseInt(currentInput);
+            int result = 0;
             switch (operator) {
-                case "+": result = firstOperand + secondOperand; break;
-                case "-": result = firstOperand - secondOperand; break;
-                case "*": result = firstOperand * secondOperand; break;
-                case "/": result = (secondOperand == 0) ? Double.NaN : firstOperand / secondOperand; break;
+                case "+":
+                    result = (int)firstOperand + secondOperand;
+                    break;
+                case "-":
+                    result = (int)firstOperand - secondOperand;
+                    break;
+                case "×":
+                    result = (int)firstOperand * secondOperand;
+                    break;
+                case "/":
+                    if (secondOperand == 0) {
+                        display.setText("Error");
+                        operationDisplay.setText("");
+                        currentInput = "";
+                        operator = "";
+                        return;
+                    }
+                    result = (int)firstOperand / secondOperand;
+                    break;
             }
-            String resultText = String.format("%.2f %s %.2f = %.2f", firstOperand, operator, secondOperand, result);
+            String resultText = String.format("%d %s %d = %d", (int)firstOperand, operator, secondOperand, result);
             display.setText(String.valueOf(result));
             addToHistory(resultText);
             currentInput = "";
