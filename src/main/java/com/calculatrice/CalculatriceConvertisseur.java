@@ -240,20 +240,10 @@ public class CalculatriceConvertisseur extends Application {
 
     private void openConversionWindow() {
         Stage conversionStage = new Stage();
-        VBox layout = new VBox(10);
+        VBox layout = new VBox(15);
         layout.setPadding(new Insets(20));
         layout.setStyle("-fx-background-color: #f0f0f0;");
 
-        // Create tabs for different conversion types
-        TabPane tabPane = new TabPane();
-        tabPane.setStyle("-fx-background-color: #f0f0f0;");
-        
-        // Currency Conversion Tab
-        Tab currencyTab = new Tab("Currency");
-        VBox currencyLayout = new VBox(15);
-        currencyLayout.setPadding(new Insets(20));
-        currencyLayout.setStyle("-fx-background-color: #f0f0f0;");
-        
         Label titleLabel = new Label("Currency Converter");
         titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;");
         
@@ -262,12 +252,12 @@ public class CalculatriceConvertisseur extends Application {
         amountField.setStyle("-fx-font-size: 16px; -fx-padding: 10px; -fx-background-radius: 10px;");
         
         ComboBox<String> fromCurrency = new ComboBox<>();
-        fromCurrency.getItems().addAll("USD", "EUR", "XOF");
+        fromCurrency.getItems().addAll("EUR", "XOF");
         fromCurrency.setPromptText("From Currency");
         fromCurrency.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px;");
         
         ComboBox<String> toCurrency = new ComboBox<>();
-        toCurrency.getItems().addAll("USD", "EUR", "XOF");
+        toCurrency.getItems().addAll("EUR", "XOF");
         toCurrency.setPromptText("To Currency");
         toCurrency.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px;");
         
@@ -298,7 +288,7 @@ public class CalculatriceConvertisseur extends Application {
             }
         });
         
-        currencyLayout.getChildren().addAll(
+        layout.getChildren().addAll(
             titleLabel,
             amountField,
             fromCurrency,
@@ -306,108 +296,24 @@ public class CalculatriceConvertisseur extends Application {
             convertButton,
             resultLabel
         );
-        currencyTab.setContent(currencyLayout);
         
-        // Length Conversion Tab
-        Tab lengthTab = new Tab("Length");
-        VBox lengthLayout = new VBox(15);
-        lengthLayout.setPadding(new Insets(20));
-        lengthLayout.setStyle("-fx-background-color: #f0f0f0;");
-        
-        Label lengthTitleLabel = new Label("Length Converter");
-        lengthTitleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;");
-        
-        TextField lengthField = new TextField();
-        lengthField.setPromptText("Enter length");
-        lengthField.setStyle("-fx-font-size: 16px; -fx-padding: 10px; -fx-background-radius: 10px;");
-        
-        ComboBox<String> fromLength = new ComboBox<>();
-        fromLength.getItems().addAll("Meters", "Kilometers", "Miles", "Feet");
-        fromLength.setPromptText("From Unit");
-        fromLength.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px;");
-        
-        ComboBox<String> toLength = new ComboBox<>();
-        toLength.getItems().addAll("Meters", "Kilometers", "Miles", "Feet");
-        toLength.setPromptText("To Unit");
-        toLength.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px;");
-        
-        Button convertLengthButton = new Button("Convert");
-        convertLengthButton.setStyle("-fx-background-color: #007AFF; -fx-text-fill: white; -fx-font-size: 16px; " +
-                                   "-fx-padding: 10px; -fx-background-radius: 10px;");
-        
-        Label lengthResultLabel = new Label("Result: ");
-        lengthResultLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #333333;");
-        
-        convertLengthButton.setOnAction(e -> {
-            try {
-                double length = Double.parseDouble(lengthField.getText());
-                String from = fromLength.getValue();
-                String to = toLength.getValue();
-                
-                if (from == null || to == null) {
-                    lengthResultLabel.setText("Please select units!");
-                    return;
-                }
-                
-                double result = convertLength(length, from, to);
-                String resultText = String.format("%.2f %s = %.2f %s", length, from, result, to);
-                lengthResultLabel.setText(resultText);
-                addToHistory(resultText);
-            } catch (NumberFormatException ex) {
-                lengthResultLabel.setText("Invalid input!");
-            }
-        });
-        
-        lengthLayout.getChildren().addAll(
-            lengthTitleLabel,
-            lengthField,
-            fromLength,
-            toLength,
-            convertLengthButton,
-            lengthResultLabel
-        );
-        lengthTab.setContent(lengthLayout);
-        
-        tabPane.getTabs().addAll(currencyTab, lengthTab);
-        layout.getChildren().add(tabPane);
-        
-        Scene scene = new Scene(layout, 400, 400);
+        Scene scene = new Scene(layout, 400, 300);
         conversionStage.setScene(scene);
-        conversionStage.setTitle("Converter");
+        conversionStage.setTitle("Currency Converter");
         conversionStage.show();
     }
 
     private double convertCurrency(double amount, String from, String to) {
         // Updated exchange rates (as of 2024)
         double[][] rates = {
-            {1.0, 0.9259, 605.0},     // USD rates (1 USD = 0.9259 EUR, 1 USD = 605 XOF)
-            {1.08, 1.0, 655.96},      // EUR rates (1 EUR = 1.08 USD, 1 EUR = 655.96 XOF)
-            {0.001653, 0.001524, 1.0} // XOF rates (1 XOF = 0.001653 USD, 1 XOF = 0.001524 EUR)
+            {1.0, 655.96},      // EUR rates (1 EUR = 655.96 XOF)
+            {0.001524, 1.0}     // XOF rates (1 XOF = 0.001524 EUR)
         };
         
-        int fromIndex = from.equals("USD") ? 0 : from.equals("EUR") ? 1 : 2;
-        int toIndex = to.equals("USD") ? 0 : to.equals("EUR") ? 1 : 2;
+        int fromIndex = from.equals("EUR") ? 0 : 1;
+        int toIndex = to.equals("EUR") ? 0 : 1;
         
         return amount * rates[fromIndex][toIndex];
-    }
-
-    private double convertLength(double length, String from, String to) {
-        // Updated conversion rates
-        double[][] rates = {
-            {1.0, 0.001, 0.000621371, 3.28084},     // Meters rates
-            {1000.0, 1.0, 0.621371, 3280.84},       // Kilometers rates
-            {1609.34, 1.60934, 1.0, 5280.0},        // Miles rates
-            {0.3048, 0.0003048, 0.000189394, 1.0}   // Feet rates
-        };
-        
-        int fromIndex = from.equals("Meters") ? 0 : 
-                       from.equals("Kilometers") ? 1 :
-                       from.equals("Miles") ? 2 : 3;
-        int toIndex = to.equals("Meters") ? 0 :
-                     to.equals("Kilometers") ? 1 :
-                     to.equals("Miles") ? 2 : 3;
-        
-        return length * rates[fromIndex][toIndex];
     }
 
     private void addToHistory(String calculation) {

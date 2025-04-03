@@ -1,17 +1,23 @@
-# Calculator and Converter Application
+# CalculatriceConvertisseur
 
-A modern calculator application built with JavaFX that includes both basic calculator functionality and unit conversion features. The design is inspired by the iPhone calculator with a clean, modern interface.
+A modern JavaFX calculator application with currency conversion capabilities, inspired by the iPhone calculator design.
 
 ## Features
 
-- Basic calculator operations (addition, subtraction, multiplication, division)
-- Percentage calculations
-- Backspace functionality to delete numbers one by one
-- History of recent calculations
-- Currency conversion (USD, EUR, XOF)
-- Length conversion (Meters, Kilometers, Miles, Feet)
-- Modern UI with button animations
-- Apple-inspired design
+- **Calculator Functions**
+  - Basic arithmetic operations (addition, subtraction, multiplication, division)
+  - Integer-only calculations
+  - Percentage calculations
+  - Clear and backspace functionality
+  - Operation history tracking
+  - Beautiful iPhone-like design with 3D button effects
+  - Smooth button animations on click
+
+- **Currency Converter**
+  - Convert between EUR and XOF currencies
+  - Real-time conversion with current exchange rates
+  - Clean and intuitive interface
+  - Quick access from the main calculator
 
 ## Requirements
 
@@ -23,7 +29,7 @@ A modern calculator application built with JavaFX that includes both basic calcu
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/YOUR_USERNAME/CalculatriceConvertisseur.git
+git clone https://github.com/yourusername/CalculatriceConvertisseur.git
 ```
 
 2. Navigate to the project directory:
@@ -31,37 +37,28 @@ git clone https://github.com/YOUR_USERNAME/CalculatriceConvertisseur.git
 cd CalculatriceConvertisseur
 ```
 
-3. Build the project:
+3. Run the application:
 ```bash
-./mvnw clean install
-```
-
-4. Run the application:
-```bash
-./mvnw javafx:run
+./mvnw clean javafx:run
 ```
 
 ## Usage
 
 ### Calculator
-- Use the number buttons (0-9) to input numbers
-- Use operators (+, -, ×, ÷) for calculations
+- Use the number buttons to input values
+- Press operation buttons (+, -, ×, ÷) to perform calculations
 - Press "=" to see the result
-- Use "AC" to clear all
-- Use "⌫" to delete the last digit
-- Use "%" to calculate percentages
+- Press "AC" to clear all
+- Press "⌫" to delete the last digit
+- Press "%" to calculate percentages
+- Press "History" to view calculation history
 
-### Converter
-- Click the "Conv" button to open the converter window
-- Choose between Currency and Length conversion
+### Currency Converter
+- Press "Conv" to open the currency converter
+- Select the currencies to convert between (EUR and XOF)
 - Enter the amount to convert
-- Select the source and target units
-- Click "Convert" to see the result
-
-## Contributing
-
-Feel free to submit issues and enhancement requests!
+- Press "Convert" to see the result
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
