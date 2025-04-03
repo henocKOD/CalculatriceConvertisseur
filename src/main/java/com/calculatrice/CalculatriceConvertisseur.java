@@ -102,7 +102,7 @@ public class CalculatriceConvertisseur extends Application {
         }
 
         // Create History button
-        Button historyButton = new Button("History");
+        Button historyButton = new Button("Historique");
         historyButton.setStyle("-fx-background-color: #333333; -fx-text-fill: white; -fx-font-size: 16px; " +
                              "-fx-background-radius: 5px; -fx-padding: 5px 10px;");
         historyButton.setOnAction(e -> showHistory());
@@ -111,20 +111,20 @@ public class CalculatriceConvertisseur extends Application {
         root.setStyle("-fx-background-color: black;");
         Scene scene = new Scene(root, 320, 600);
         primaryStage.setScene(scene);
-        primaryStage.setTitle("iPhone Calculator");
+        primaryStage.setTitle("Calculatrice iPhone");
         primaryStage.show();
     }
 
     private void showHistory() {
         if (historyStage == null) {
             historyStage = new Stage();
-            historyStage.setTitle("Calculation History");
+            historyStage.setTitle("Historique des Calculs");
             
             VBox historyLayout = new VBox(10);
             historyLayout.setPadding(new Insets(20));
             historyLayout.setStyle("-fx-background-color: #1c1c1c;");
             
-            Label historyLabel = new Label("Calculation History");
+            Label historyLabel = new Label("Historique des Calculs");
             historyLabel.setStyle("-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;");
             
             historyView = new ListView<>();
@@ -133,7 +133,7 @@ public class CalculatriceConvertisseur extends Application {
             historyView.setStyle("-fx-background-color: #1c1c1c; -fx-text-fill: white; -fx-font-size: 14px;");
             historyView.setItems(FXCollections.observableArrayList(history));
             
-            Button clearHistoryButton = new Button("Clear History");
+            Button clearHistoryButton = new Button("Effacer l'Historique");
             clearHistoryButton.setStyle("-fx-background-color: #FF3B30; -fx-text-fill: white; -fx-font-size: 14px; " +
                                       "-fx-padding: 8px; -fx-background-radius: 5px;");
             clearHistoryButton.setOnAction(e -> {
@@ -243,53 +243,67 @@ public class CalculatriceConvertisseur extends Application {
         VBox layout = new VBox(15);
         layout.setPadding(new Insets(20));
         layout.setStyle("-fx-background-color: #f0f0f0;");
+        layout.setAlignment(Pos.CENTER);
 
-        Label titleLabel = new Label("Currency Converter");
+        Label titleLabel = new Label("Convertisseur de Devises");
         titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #333333;");
         
+        Label subtitleLabel = new Label("XOF = Franc CFA (Communauté Financière Africaine)");
+        subtitleLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #666666;");
+        
+        Label rateLabel = new Label("Taux actuel : 1 EUR = 655,96 XOF");
+        rateLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #007AFF; -fx-font-weight: bold;");
+        
         TextField amountField = new TextField();
-        amountField.setPromptText("Enter amount");
+        amountField.setPromptText("Entrez le montant");
         amountField.setStyle("-fx-font-size: 16px; -fx-padding: 10px; -fx-background-radius: 10px;");
+        amountField.setMaxWidth(300);
         
         ComboBox<String> fromCurrency = new ComboBox<>();
         fromCurrency.getItems().addAll("EUR", "XOF");
-        fromCurrency.setPromptText("From Currency");
+        fromCurrency.setPromptText("Devise d'origine");
         fromCurrency.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px;");
+        fromCurrency.setMaxWidth(300);
         
         ComboBox<String> toCurrency = new ComboBox<>();
         toCurrency.getItems().addAll("EUR", "XOF");
-        toCurrency.setPromptText("To Currency");
+        toCurrency.setPromptText("Devise de destination");
         toCurrency.setStyle("-fx-font-size: 16px; -fx-background-radius: 10px;");
+        toCurrency.setMaxWidth(300);
         
-        Button convertButton = new Button("Convert");
-        convertButton.setStyle("-fx-background-color: #007AFF; -fx-text-fill: white; -fx-font-size: 16px; " +
-                             "-fx-padding: 10px; -fx-background-radius: 10px;");
+        Button convertButton = new Button("Convertir");
+        convertButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 16px; " +
+                             "-fx-padding: 10px 20px; -fx-background-radius: 10px; " +
+                             "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 5, 0, 0, 1);");
+        convertButton.setMaxWidth(300);
         
-        Label resultLabel = new Label("Result: ");
+        Label resultLabel = new Label("Résultat : ");
         resultLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #333333;");
         
         convertButton.setOnAction(e -> {
             try {
-                double amount = Double.parseDouble(amountField.getText());
+                double amount = Double.parseDouble(amountField.getText().replace(",", "."));
                 String from = fromCurrency.getValue();
                 String to = toCurrency.getValue();
                 
                 if (from == null || to == null) {
-                    resultLabel.setText("Please select currencies!");
+                    resultLabel.setText("Veuillez sélectionner les devises !");
                     return;
                 }
                 
                 double result = convertCurrency(amount, from, to);
                 String resultText = String.format("%.2f %s = %.2f %s", amount, from, result, to);
-                resultLabel.setText(resultText);
-                addToHistory(resultText);
+                resultLabel.setText("Résultat : " + resultText.replace(".", ","));
+                addToHistory(resultText.replace(".", ","));
             } catch (NumberFormatException ex) {
-                resultLabel.setText("Invalid input!");
+                resultLabel.setText("Entrée invalide !");
             }
         });
         
         layout.getChildren().addAll(
             titleLabel,
+            subtitleLabel,
+            rateLabel,
             amountField,
             fromCurrency,
             toCurrency,
@@ -297,9 +311,10 @@ public class CalculatriceConvertisseur extends Application {
             resultLabel
         );
         
-        Scene scene = new Scene(layout, 400, 300);
+        Scene scene = new Scene(layout, 400, 450);
         conversionStage.setScene(scene);
-        conversionStage.setTitle("Currency Converter");
+        conversionStage.setTitle("Convertisseur de Devises");
+        conversionStage.setResizable(false);
         conversionStage.show();
     }
 
@@ -340,7 +355,7 @@ public class CalculatriceConvertisseur extends Application {
                 case "×":
                     result = (int)firstOperand * secondOperand;
                     break;
-                case "/":
+                case "÷":
                     if (secondOperand == 0) {
                         display.setText("Error");
                         operationDisplay.setText("");
